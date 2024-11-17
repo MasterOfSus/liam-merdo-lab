@@ -4,6 +4,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TFile.h"
+#include "TBenchmark.h"
 
 #include "particle/particle.hpp"
 
@@ -35,17 +36,22 @@ void simulate() {
 
 	gRandom->SetSeed();
 
+	double histoExt {19.};
 	TH1F* pTypesH = new TH1F("pTypesH", "Particle types", 7, 0.5, 7.5);
 	TH2F* anglesH = new TH2F("anglesH", "Angles", 1000, 0., 2*M_PI, 500, 0., M_PI);
-	TH1F* momentumH = new TH1F("momentumH", "Momentum norm", 1000, 0., 3.);
-	TH1F* tMomentumH = new TH1F("tMomentumH", "Transverse momentum", 1000, 0., 3.);
-	TH1F* energyH = new TH1F("energyH", "Energy", 1000, 0., 3.);
-	TH1F* invMassTotH = new TH1F("invMassTotH", "Invariant mass", 1000, 0., 3.);
-	TH1F* invMassOppSgnH = new TH1F("invMassOppSgnH", "Invariant mass, opp sign", 1000, 0., 3.);
-	TH1F* invMassEqSgnH = new TH1F("invMassEqSgnH", "Invariant mass, equal sign", 1000, 0., 3.);
-	TH1F* invMassPKOppH = new TH1F("invMassPKOppH", "Invariant mass, opp. sign p and k", 1000, 0., 3.);
-	TH1F* invMassPKEqH = new TH1F("invMassPKEqH", "Invariant mass, equal sign p and k", 1000, 0., 3.);
-	TH1F* invMassKStarH = new TH1F("invMassKStarH", "Invariant mass, K* decay products", 1000, 0., 3.);
+	TH1F* momentumH = new TH1F("momentumH", "Momentum norm", 1000, 0., histoExt);
+	TH1F* tMomentumH = new TH1F("tMomentumH", "Transverse momentum", 1000, 0., histoExt);
+	TH1F* energyH = new TH1F("energyH", "Energy", 1000, 0., histoExt);
+	TH1F* invMassTotH = new TH1F("invMassTotH", "Invariant mass", 1000, 0., histoExt);
+	TH1F* invMassOppSgnH = new TH1F("invMassOppSgnH", "Invariant mass, opp sign", 1000, 0., histoExt);
+	invMassOppSgnH->Sumw2();
+	TH1F* invMassEqSgnH = new TH1F("invMassEqSgnH", "Invariant mass, equal sign", 1000, 0., histoExt);
+	invMassEqSgnH->Sumw2();
+	TH1F* invMassPKOppH = new TH1F("invMassPKOppH", "Invariant mass, opp. sign p and k", 1000, 0., histoExt);
+	invMassPKOppH->Sumw2();
+	TH1F* invMassPKEqH = new TH1F("invMassPKEqH", "Invariant mass, equal sign p and k", 1000, 0., histoExt);
+	invMassPKEqH->Sumw2();
+	TH1F* invMassKStarH = new TH1F("invMassKStarH", "Invariant mass, K* decay products", 1000, 0.5, 1.2);
 
 	int nEvents {static_cast<int>(1E5)};
 	const int nGens {100}; // number of generated particles
@@ -64,17 +70,21 @@ void simulate() {
 	Particle dau2;
 
 	std::cout << "Correctly finished pre-loops setup. Starting generation.\n";
+	
+	gBenchmark->Start("Loop");
+
 	for (int i {}; i < nEvents; ++i) {
+
 		for (Particle& particle: eventParticles) {
 			particle = {};
 			assert(particle.getIndex() == -1);
 		}
 
 		for (int i {}; i < nGens; ++i) {
-			phi = gRandom->Uniform(0., 2*M_PI);
-			theta = gRandom->Uniform(0., M_PI);
+			theta = gRandom->Uniform(0., 2*M_PI);
+			phi = gRandom->Uniform(0., M_PI);
 			pNorm = gRandom->Exp(1.);
-			eventParticles[i].setMomentum( { sin(phi)*cos(theta)*pNorm, sin(phi)*sin(theta)*pNorm, cos(theta)*pNorm } );
+			eventParticles[i].setMomentum( { sin(phi)*cos(theta)*pNorm, sin(phi)*sin(theta)*pNorm, cos(phi)*pNorm } );
 			
 			control = gRandom->Uniform(0., 1.);
 			if (control < 0.4) eventParticles[i].setIndex(piPlusI); 				// pi+, 40%
@@ -102,7 +112,7 @@ void simulate() {
 			pTypesH->Fill(eventParticles[i].getIndex() + 1.);
 			momentumH->Fill(pNorm);
 			tMomentumH->Fill(sqrt(pNorm*pNorm*sin(theta)*sin(theta)));
-			anglesH->Fill(phi, theta);
+			anglesH->Fill(theta, phi);
 			energyH->Fill(eventParticles[i].getEnergy());
 		}
 
@@ -115,28 +125,37 @@ void simulate() {
 				//tMomentumH->Fill(eventParticles[i].getMomentum().norm2() - eventParticles[i].getPz()*eventParticles[i].getPz());
 				for (int j{i+1}; j < max; ++j) {
 					if (eventParticles[j].getIndex() != kStarI) {
-						invMassTotH->Fill(invMass(eventParticles[i], eventParticles[j]));
+						double invarMass = invMass(eventParticles[i], eventParticles[j]);
+						invMassTotH->Fill(invarMass);
+						
 						if (eventParticles[i].getCharge()*eventParticles[j].getCharge() > 0) {
-							invMassEqSgnH->Fill(invMass(eventParticles[i], eventParticles[j]));
+							invMassEqSgnH->Fill(invarMass);
 						}
-						else invMassOppSgnH->Fill(invMass(eventParticles[i], eventParticles[j]));
+						else invMassOppSgnH->Fill(invarMass);
+						
 						if (eventParticles[i].getIndex() == piPlusI) {				// pi+
 							if (eventParticles[j].getIndex() == kPlusI)					// k+
-								invMassPKEqH->Fill(invMass(eventParticles[i], eventParticles[j]));
+								invMassPKEqH->Fill(invarMass);
 							else if (eventParticles[j].getIndex() == kMinI) 		// k-
-								invMassPKOppH->Fill(invMass(eventParticles[i], eventParticles[j]));
+								invMassPKOppH->Fill(invarMass);
 						} else if(eventParticles[i].getIndex() == piMinI) { 	// pi-
 							if (eventParticles[j].getIndex() == kPlusI)					// k+
-								invMassPKOppH->Fill(invMass(eventParticles[i], eventParticles[j]));
+								invMassPKOppH->Fill(invarMass);
 							else if (eventParticles[j].getIndex() == kMinI)			// k-
-								invMassPKEqH->Fill(invMass(eventParticles[i], eventParticles[j]));
+								invMassPKEqH->Fill(invarMass);
 						}
+
 					}
 				}
 			}
 		}
 	}
-	std::cout << "Generation finished, saving histograms to file.\n";
+
+	gBenchmark->Show("Loop");
+
+	gBenchmark->Reset();
+
+	std::cout << "Generation finished, saving data to file.\n";
 	TFile* output = new TFile("output/genOutput.root", "RECREATE");
 	pTypesH->Write();
 	anglesH->Write();
@@ -150,6 +169,7 @@ void simulate() {
 	invMassPKOppH->Write();
 	invMassKStarH->Write();
 	output->Close();
+	std::cout << "Histograms saved, deleting histograms from heap.\n";
 	delete pTypesH;
 	delete anglesH;
 	delete momentumH;

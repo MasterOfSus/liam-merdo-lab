@@ -72,7 +72,7 @@ int Particle::decayToBody(Particle &dau1,Particle &dau2) const {
   double massDau1 = dau1.getMass();
   double massDau2 = dau2.getMass();
 
-  if(index_ >= 1){ // add width effect
+  if(index_ > -1){ // add width effect
 
     // gaussian random numbers
 
