@@ -1,9 +1,10 @@
 #ifndef PARTICLE_HPP
 #define PARTICLE_HPP
 
-#include "resonanceType.hpp"
 #include <cmath>
 #include <cstdlib> 
+
+#include "resonanceType.hpp"
 
 struct Momentum {
 
@@ -29,6 +30,7 @@ public:
 	
 	int getIndex() const { return index_; }
 	Momentum getMomentum() const { return momentum_; }
+	int getCharge() const { return particleTypes_[getIndex()]->getCharge(); };
 	double getPx() const { return momentum_.px; }
 	double getPy() const { return momentum_.py; }
 	double getPz() const { return momentum_.pz; }
@@ -57,4 +59,5 @@ private:
 double invMass(const Particle& p1, const Particle& p2);
 
 int tailIndex(const Particle* array, const int arraySize, const int start);
+
 #endif

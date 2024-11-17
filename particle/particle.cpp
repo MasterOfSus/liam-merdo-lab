@@ -23,9 +23,11 @@ void Particle::addParticleType(const char* name, double mass, int charge, double
 			if (width) {
 				particleTypes_[nParticleTypes_] = new ResonanceType(name, mass, charge, width);
 				nParticleTypes_++;
+				std::cout << "Added resonance type with name " << name << " at index " << nParticleTypes_ - 1 << ".\n";
 			} else {
 				particleTypes_[nParticleTypes_] = new ParticleType(name, mass, charge);
 				nParticleTypes_++;
+				std::cout << "Added particle type with name " << name << " at index " << nParticleTypes_ - 1 << ".\n";
 			}
 		}
 	} else std::cout << "Maximum number of particles reached.\n";
