@@ -32,7 +32,7 @@ void simulate() {
 	Particle::addParticleType("k*", KstarMass, 0, KstarLength);
 	int kStarI = 6;
 
-	std::cout << "Successfully added particle types.\n";
+	// std::cout << "Successfully added particle types.\n";
 
 	gRandom->SetSeed();
 
@@ -55,7 +55,7 @@ void simulate() {
 
 	int nEvents {static_cast<int>(1E5)};
 	const int nGens {100}; // number of generated particles
-	const int nParticles {nGens * 6 / 5}; // safe array size for 1% likelyhood of k* generation
+	const int nParticles {nGens * 6 / 5}; // safe array size for 1% likelyhood of k* generation (120%)
 
 	// declaring variables for the loops to use
 	Particle eventParticles[nParticles];
@@ -69,6 +69,11 @@ void simulate() {
 	Particle dau1;
 	Particle dau2;
 
+	int jCurrentIndex {0};
+	int kCurrentIndex {0};
+
+	int tailIndex {100}; // index for first empty space in the eventParticles array after the 100th spot
+
 	std::cout << "Correctly finished pre-loops setup. Starting generation.\n";
 	
 	gBenchmark->Start("Loop");
@@ -80,21 +85,23 @@ void simulate() {
 			assert(particle.getIndex() == -1);
 		}
 
-		for (int i {}; i < nGens; ++i) {
+		tailIndex = 100;
+
+		for (int j {}; j < nGens; ++j) {
 			theta = gRandom->Uniform(0., 2*M_PI);
 			phi = gRandom->Uniform(0., M_PI);
 			pNorm = gRandom->Exp(1.);
-			eventParticles[i].setMomentum( { sin(phi)*cos(theta)*pNorm, sin(phi)*sin(theta)*pNorm, cos(phi)*pNorm } );
+			eventParticles[j].setMomentum( { sin(phi)*cos(theta)*pNorm, sin(phi)*sin(theta)*pNorm, cos(phi)*pNorm } );
 			
 			control = gRandom->Uniform(0., 1.);
-			if (control < 0.4) eventParticles[i].setIndex(piPlusI); 				// pi+, 40%
-			else if (control < 0.8) eventParticles[i].setIndex(piMinI); 		// pi-, 40%
-			else if (control < 0.85) eventParticles[i].setIndex(kPlusI); 		// k+, 5%
-			else if (control < 0.9) eventParticles[i].setIndex(kMinI); 			// k-, 5%
-			else if (control < 0.945) eventParticles[i].setIndex(pPlusI);		// P+, 4.5%
-			else if (control < 0.99) eventParticles[i].setIndex(pMinI); 		// P-, 4.5%
+			if (control < 0.4) eventParticles[j].setIndex(piPlusI); 				// pi+, 40%
+			else if (control < 0.8) eventParticles[j].setIndex(piMinI); 		// pi-, 40%
+			else if (control < 0.85) eventParticles[j].setIndex(kPlusI); 		// k+, 5%
+			else if (control < 0.9) eventParticles[j].setIndex(kMinI); 			// k-, 5%
+			else if (control < 0.945) eventParticles[j].setIndex(pPlusI);		// P+, 4.5%
+			else if (control < 0.99) eventParticles[j].setIndex(pMinI); 		// P-, 4.5%
 			else {
-				eventParticles[i].setIndex(kStarI);														// k*, 1%
+				eventParticles[j].setIndex(kStarI);														// k*, 1%
 				if (control < 0.995) {		// pi+ k- decay, 50%
 					dau1.setIndex(piPlusI); // pi+
 					dau2.setIndex(kMinI); 	// k-
@@ -102,49 +109,51 @@ void simulate() {
 					dau1.setIndex(piMinI); 	// pi-
 					dau2.setIndex(kPlusI); 	// k+
 				}
-				decayResult = eventParticles[i].decayToBody(dau1, dau2);
+				decayResult = eventParticles[j].decayToBody(dau1, dau2);
 				assert((!decayResult));
 				// std::cout << "K* generated, decay process result: " << decayResult << std::endl;
-				eventParticles[tailIndex(eventParticles, nParticles, nGens)] = dau1;
-				eventParticles[tailIndex(eventParticles, nParticles, nGens)] = dau2;
+				
+				eventParticles[tailIndex] = dau1;
+				++tailIndex; // increasing tailIndex
+				eventParticles[tailIndex] = dau2;
+				++tailIndex; // same as before
 				invMassKStarH->Fill(invMass(dau1, dau2));
 			}
-			pTypesH->Fill(eventParticles[i].getIndex() + 1.);
+			pTypesH->Fill(eventParticles[j].getIndex() + 1.);
 			momentumH->Fill(pNorm);
 			tMomentumH->Fill(sqrt(pNorm*pNorm*sin(theta)*sin(theta)));
 			anglesH->Fill(theta, phi);
-			energyH->Fill(eventParticles[i].getEnergy());
+			energyH->Fill(eventParticles[j].getEnergy());
 		}
 
 		// fill histograms
-		int max = tailIndex(eventParticles, nParticles, nGens);
-		// std::cout << "Found tailIndex for iteration " << i << ": " << max << "\n";
-		for (int i {}; i < max; ++i) {
-			if (eventParticles[i].getIndex() != kStarI) {
+		for (int j {}; j < tailIndex; ++j) {
+			jCurrentIndex = eventParticles[j].getIndex();
+			if (jCurrentIndex != kStarI) {
 				//momentumH->Fill(eventParticles[i].getMomentum().norm());
 				//tMomentumH->Fill(eventParticles[i].getMomentum().norm2() - eventParticles[i].getPz()*eventParticles[i].getPz());
-				for (int j{i+1}; j < max; ++j) {
-					if (eventParticles[j].getIndex() != kStarI) {
-						double invarMass = invMass(eventParticles[i], eventParticles[j]);
+				for (int k{j+1}; k < tailIndex; ++k) {
+					kCurrentIndex = eventParticles[k].getIndex();
+					if (kCurrentIndex != kStarI) {
+						double invarMass = invMass(eventParticles[j], eventParticles[k]);
 						invMassTotH->Fill(invarMass);
 						
-						if (eventParticles[i].getCharge()*eventParticles[j].getCharge() > 0) {
+						if (eventParticles[j].getCharge()*eventParticles[k].getCharge() > 0) {
 							invMassEqSgnH->Fill(invarMass);
 						}
 						else invMassOppSgnH->Fill(invarMass);
 						
-						if (eventParticles[i].getIndex() == piPlusI) {				// pi+
-							if (eventParticles[j].getIndex() == kPlusI)					// k+
+						if (jCurrentIndex == piPlusI) {				// pi+
+							if (kCurrentIndex == kPlusI)					// k+
 								invMassPKEqH->Fill(invarMass);
-							else if (eventParticles[j].getIndex() == kMinI) 		// k-
+							else if (kCurrentIndex == kMinI) 		// k-
 								invMassPKOppH->Fill(invarMass);
-						} else if(eventParticles[i].getIndex() == piMinI) { 	// pi-
-							if (eventParticles[j].getIndex() == kPlusI)					// k+
+						} else if(jCurrentIndex == piMinI) { 	// pi-
+							if (kCurrentIndex == kPlusI)					// k+
 								invMassPKOppH->Fill(invarMass);
-							else if (eventParticles[j].getIndex() == kMinI)			// k-
+							else if (kCurrentIndex == kMinI)			// k-
 								invMassPKEqH->Fill(invarMass);
 						}
-
 					}
 				}
 			}

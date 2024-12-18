@@ -7,28 +7,22 @@
 #include "TF1.h"
 #include "TF2.h"
 #include "TFormula.h"
+#include "TStyle.h"
+#include "TROOT.h"
+#include "THistPainter.h"
 
 #include "particle/particle.hpp"
 
-double pTypesProb(Double_t * x, Double_t * par) {
-	if (*x < 0.5) return 0.;
-	else if (*x < 2.5) return 0.4 * par[0];
-	else if (*x < 4.5) return 0.05 * par[0];
-	else if (*x < 6.5) return 0.045 * par[0];
-	else if (*x < 7.5) return 0.01 * par[0];
-	else return 0.;
-}
-
-void checkInput() {
-
-}
-
 void analyze() {
-	checkInput();
+
+	gStyle->SetFillColor(kViolet-7);
+	gStyle->SetLineColor(kGreen+3);
 
 	TFile* input = new TFile("output/genOutput.root", "READ");
 
-	int nEvents {static_cast<int>(1E5)};
+	gROOT->ForceStyle();
+
+	int nEvents {100000};
 	int nParticles {100};
 
 	TH1F* pTypesH = (TH1F*) input->Get("pTypesH");
@@ -49,13 +43,8 @@ void analyze() {
 	assert(tMomentumH->GetEntries() == nEvents*nParticles);
 	assert(energyH->GetEntries() == nEvents*nParticles);
 	std::cout << "Generated particle data histograms have the expected number of entries.\n\n";
-/*
-	TF1* pTypesF = new TF1("expectedPTypes", pTypesProb, 0.5, 7.5, 1);
-	pTypesF->SetNpx(10000);
-	pTypesF->SetNumberFitPoints(1000);
-*/
 
-	const int expPTypesN = 7;
+	const int expPTypesN = 7; // expected particle types number
 	assert(expPTypesN == pTypesH->GetEntries());
 
 	double pTypesPercentages[expPTypesN];
@@ -72,26 +61,31 @@ void analyze() {
 
 	std::cout << "Generated particles %:\n";
 	for(int i{0}; i < expPTypesN; ++i){
-		std::cout<<"Percentage for particle "<<particleNames[i]<<" = " <<pTypesPercentages[i]<<" +/- "<<pTypesPercErrs[i]<<"\n";
+		std::cout << "Percentage for " << particleNames[i] << " particle: " << pTypesPercentages[i] << " +/- "<< pTypesPercErrs[i] << "\n";
 	}
 
 	TH1F* thetaH = (TH1F*) anglesH->ProjectionX("thetaH");
-	TH1F* phiH = (TH1F*) anglesH->ProjectionY("phiH");
-
 	TF1* thetaF = new TF1("thetaF", "[0]", 0., 2*M_PI);
-	thetaH->SetMinimum(0.);
-	thetaH->SetTitle("Occorrenze dell'angolo polare");
-	TF1* phiF = new TF1("phiF", "[0]", 0., 2*M_PI);
-	phiH->SetMinimum(0.);
-	phiH->SetTitle("Occorrenze dell'angolo azimutale");
 
-	thetaH->Fit(thetaF);
-	std::cout << "Chisquare/NDF     =  " << thetaF->GetChisquare() / thetaF->GetNDF() << std::endl;
-	std::cout << "Fit likelyhood	 	=  " << thetaF->GetProb() << "\n";
+	thetaH->SetMinimum(0.);
+	thetaH->SetTitle("Occorrenze - Angolo polare");
 	
+	thetaH->Fit(thetaF);
+
+	std::cout << "Theta probability density 	=	 " << thetaF->GetParameter(0) / thetaH->GetEntries()
+	<< " +/- " << thetaF->GetParError(0) / thetaH->GetEntries() << std::endl;
+	std::cout << "Chisquare/NDF 							=	 " << thetaF->GetChisquare() / thetaF->GetNDF() << std::endl;
+	std::cout << "Fit likelyhood 							=  " << thetaF->GetProb() << std::endl;
+
+	TH1F* phiH = (TH1F*) anglesH->ProjectionY("phiH");
+	TF1* phiF = new TF1("phiF", "[0]", 0., 2*M_PI);
+	
+	phiH->SetMinimum(0.);
+	phiH->SetTitle("Occorrenze - Angolo azimutale");
+
 	phiH->Fit(phiF);
-	std::cout << "Chisquare/NDF     =  " << phiF->GetChisquare() / thetaF->GetNDF() << std::endl;
-	std::cout << "Fit likelyhood	 	=  " << phiF->GetProb() << "\n";
+	std::cout << "Chisquare/NDF   =  " << phiF->GetChisquare() / thetaF->GetNDF() << std::endl;
+	std::cout << "Fit likelyhood	=  " << phiF->GetProb() << "\n";
 	
 	TF1* momentumF = new TF1("momentumF", "[1]*exp([0]*x)", 0., 12.);
 	momentumF->SetParameter(0, -1.);
@@ -116,14 +110,14 @@ void analyze() {
 	invMassF->SetParameter(2, .05);
 	invMassOppSgnH->Fit(invMassF, "R");
 
-	TF1* invMassPKF = new TF1("invMassPKF", "gaus", 0.65, 1.5);
+	TF1* invMassPKF = new TF1("invMassPKF", "gaus", 0.6, 1.5);
 	invMassPKOppH->SetTitle("Massa invariante - differenza per K e Pi");
 	invMassPKOppH->GetXaxis()->SetRangeUser(0.6, 3.4);
 	invMassPKF->SetNpx(10000);
 	invMassPKF->SetParameter(0, 5000.);
 	invMassPKF->SetParameter(1, .89);
 	invMassPKF->SetParameter(2, .05);
-	invMassPKOppH->Fit(invMassPKF, "R");
+	invMassPKOppH->Fit(invMassPKF, "R", "", 0.75, 1.1);
 
 	TF1* invMassKStarF = new TF1("invMassKStarF", "gaus", 0.6, 1.5);
 	invMassKStarH->SetTitle("Massa invariante - decadimenti della k*");
