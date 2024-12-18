@@ -58,6 +58,4 @@ private:
 
 double invMass(const Particle& p1, const Particle& p2);
 
-int tailIndex(const Particle* array, const int arraySize, const int start);
-
 #endif

@@ -132,12 +132,3 @@ void Particle::Boost(double bx, double by, double bz)
   momentum_.py += gamma2*bp*by + gamma*by*energy;
   momentum_.pz += gamma2*bp*bz + gamma*bz*energy;
 }
-
-int tailIndex(const Particle* array, const int arraySize,int start) {
-	for (int i {start - 1}; i < arraySize; ++i) {
-		if (array[i].getIndex() == -1) {
-			return i;
-		}
-	}
-	return -1;
-}
