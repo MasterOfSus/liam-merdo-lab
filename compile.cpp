@@ -1,3 +1,4 @@
+#include <algorithm>
 void compile(const char option) {
 	gROOT->LoadMacro("particle/particleType.cpp+");
 	gROOT->LoadMacro("particle/resonanceType.cpp+");

@@ -36,22 +36,24 @@ void simulate() {
 
 	gRandom->SetSeed();
 
-	double histoExt {19.};
+	double histoExtExp {19.};
+	double histoExtInvMassAll {13.};
+	double histoExtInvMassPK {10.};
 	TH1F* pTypesH = new TH1F("pTypesH", "Particle types", 7, 0.5, 7.5);
 	TH2F* anglesH = new TH2F("anglesH", "Angles", 1000, 0., 2*M_PI, 500, 0., M_PI);
-	TH1F* momentumH = new TH1F("momentumH", "Momentum norm", 1000, 0., histoExt);
-	TH1F* tMomentumH = new TH1F("tMomentumH", "Transverse momentum", 1000, 0., histoExt);
-	TH1F* energyH = new TH1F("energyH", "Energy", 1000, 0., histoExt);
-	TH1F* invMassTotH = new TH1F("invMassTotH", "Invariant mass", 1000, 0., histoExt);
-	TH1F* invMassOppSgnH = new TH1F("invMassOppSgnH", "Invariant mass, opp sign", 1000, 0., histoExt);
+	TH1F* momentumH = new TH1F("momentumH", "Momentum norm", 1000, 0., histoExtExp);
+	TH1F* tMomentumH = new TH1F("tMomentumH", "Transverse momentum", 1000, 0., histoExtExp);
+	TH1F* energyH = new TH1F("energyH", "Energy", 1000, 0., histoExtExp);
+	TH1F* invMassTotH = new TH1F("invMassTotH", "Invariant mass", 1000, 0., histoExtExp);
+	TH1F* invMassOppSgnH = new TH1F("invMassOppSgnH", "Invariant mass, opp sign", 1300, 0., histoExtInvMassAll);
 	invMassOppSgnH->Sumw2();
-	TH1F* invMassEqSgnH = new TH1F("invMassEqSgnH", "Invariant mass, equal sign", 1000, 0., histoExt);
+	TH1F* invMassEqSgnH = new TH1F("invMassEqSgnH", "Invariant mass, equal sign", 1300, 0., histoExtInvMassAll);
 	invMassEqSgnH->Sumw2();
-	TH1F* invMassPKOppH = new TH1F("invMassPKOppH", "Invariant mass, opp. sign p and k", 1000, 0., histoExt);
+	TH1F* invMassPKOppH = new TH1F("invMassPKOppH", "Invariant mass, opp. sign p and k", 1000, 0., histoExtInvMassPK);
 	invMassPKOppH->Sumw2();
-	TH1F* invMassPKEqH = new TH1F("invMassPKEqH", "Invariant mass, equal sign p and k", 1000, 0., histoExt);
+	TH1F* invMassPKEqH = new TH1F("invMassPKEqH", "Invariant mass, equal sign p and k", 1000, 0., histoExtInvMassPK);
 	invMassPKEqH->Sumw2();
-	TH1F* invMassKStarH = new TH1F("invMassKStarH", "Invariant mass, K* decay products", 1000, 0.5, 1.2);
+	TH1F* invMassKStarH = new TH1F("invMassKStarH", "Invariant mass, K* decay products", 125, 0.7, 1.1);
 
 	int nEvents {static_cast<int>(1E5)};
 	const int nGens {100}; // number of generated particles
