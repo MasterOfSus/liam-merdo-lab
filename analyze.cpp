@@ -310,21 +310,21 @@ void analyze() {
   invMassCvs->Divide(3, 0);
   invMassCvs->cd(1);
   gPad->SetLeftMargin(leftMargin);
-  invMassOppSgnH->GetXaxis()->SetTitle("Massa invariante");
+  invMassOppSgnH->GetXaxis()->SetTitle("Massa invariante (GeV)");
   invMassOppSgnH->GetXaxis()->SetRangeUser(0.6, 1.3);
   invMassOppSgnH->GetYaxis()->SetTitle("Occorrenze");
   invMassOppSgnH->Draw();
 
   invMassCvs->cd(2);
   gPad->SetLeftMargin(leftMargin);
-  invMassPKOppH->GetXaxis()->SetTitle("Massa invariante");
+  invMassPKOppH->GetXaxis()->SetTitle("Massa invariante (GeV)");
   invMassPKOppH->GetXaxis()->SetRangeUser(0.6, 1.3);
   invMassPKOppH->GetYaxis()->SetTitle("Occorrenze");
   invMassPKOppH->Draw();
 
   invMassCvs->cd(3);
   gPad->SetLeftMargin(leftMargin);
-  invMassKStarH->GetXaxis()->SetTitle("Massa invariante");
+  invMassKStarH->GetXaxis()->SetTitle("Massa invariante (GeV)");
   invMassKStarH->GetYaxis()->SetTitle("Occorrenze");
   invMassKStarH->Draw();
 
