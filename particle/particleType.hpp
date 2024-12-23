@@ -9,7 +9,7 @@ class ParticleType {  // Particle type representation class
   virtual const char* getName() const { return name_; };
   virtual double getMass() const { return mass_; };
   virtual int getCharge() const { return charge_; };
-	virtual double getWidth() const { return 0.; }
+  virtual double getWidth() const { return 0.; }
 
   virtual void print() const;
 
