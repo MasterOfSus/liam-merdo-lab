@@ -85,11 +85,12 @@ void analyze() {
   thetaH->Fit(thetaF, "QOR");
 
   std::cout << std::endl << "Theta fit results:" << std::endl;
-  // double probDensityTheta { thetaF->GetParameter(0) / thetaH->GetEntries() *
-  // thetaH->GetNbinsX() / M_PI / 2. }; std::cout << "Theta probability density
-  // =  " << probDensityTheta
-  //<< " +/- " << thetaF->GetParError(0) / thetaF->GetParameter(0) *
-  //probDensityTheta << std::endl;
+  double probDensityTheta{thetaF->GetParameter(0) / thetaH->GetEntries() *
+                          thetaH->GetNbinsX() / M_PI / 2.};
+  std::cout << "Theta probability density      =  " << probDensityTheta << " +/- "
+            << thetaF->GetParError(0) / thetaF->GetParameter(0) *
+                   probDensityTheta
+            << std::endl;
   std::cout << "Theta average bin height       =  " << thetaF->GetParameter(0)
             << " +/- " << thetaF->GetParError(0) << std::endl;
   std::cout << "Chisquare/NDF                  =  " << thetaF->GetChisquare()
@@ -107,11 +108,11 @@ void analyze() {
   phiH->Fit(phiF, "QOR");
 
   std::cout << std::endl << "Phi fit results:" << std::endl;
-  // double probDensityPhi { phiF->GetParameter(0) / phiH->GetEntries() *
-  // phiH->GetNbinsX() / M_PI }; std::cout << "Phi probability density        =
-  // " << probDensityPhi
-  //<< " +/- " << phiF->GetParError(0) / phiF->GetParameter(0) * probDensityPhi
-  //<< std::endl;
+  double probDensityPhi{phiF->GetParameter(0) / phiH->GetEntries() *
+                        phiH->GetNbinsX() / M_PI};
+  std::cout << "Phi probability density        =  " << probDensityPhi << " +/- "
+            << phiF->GetParError(0) / phiF->GetParameter(0) * probDensityPhi
+            << std::endl;
   std::cout << "Phi average bin height         =  " << phiF->GetParameter(0)
             << " +/- " << phiF->GetParError(0) << std::endl;
   std::cout << "Chisquare/NDF                  =  " << phiF->GetChisquare()
