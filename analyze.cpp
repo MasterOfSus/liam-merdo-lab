@@ -272,6 +272,7 @@ void analyze() {
   particlesCvs->Divide(2, 2);
   particlesCvs->cd(1);
   gPad->SetLeftMargin(leftMargin);
+	pTypesH->SetTitle("Occorrenze - Tipi di particelle");
   pTypesH->GetXaxis()->SetTitle("Tipo");
   pTypesH->GetXaxis()->CenterLabels(true);
   pTypesH->GetXaxis()->SetTickLength(0.01);
