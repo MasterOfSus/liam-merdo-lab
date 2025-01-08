@@ -1,5 +1,3 @@
-#include <cassert>
-
 #include "TBenchmark.h"
 #include "TFile.h"
 #include "TH1F.h"

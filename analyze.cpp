@@ -43,7 +43,7 @@ void analyze() {
               << std::endl;
   else
     std::cout << "WARNING! Generated particle data histograms do not have the "
-                 "expected number of entries!";
+                 "expected number of entries!" << std::endl;
   std::cout << std::endl;
 
   const int expPTypesN = 7;  // expected particle types number
@@ -296,7 +296,7 @@ void analyze() {
   phiH->Draw();
   particlesCvs->cd(2);
   gPad->SetLeftMargin(leftMargin);
-  momentumH->GetXaxis()->SetTitle("Momento");
+  momentumH->GetXaxis()->SetTitle("Momento (GeV/c)");
   momentumH->GetXaxis()->SetRangeUser(0., 9.);
   momentumH->GetYaxis()->SetTitle("Occorrenze");
   momentumH->Draw();
